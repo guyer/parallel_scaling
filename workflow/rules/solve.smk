@@ -7,7 +7,7 @@ rule solve:
     params:
         config=get_config_by_id,
     resources:
-      mpi="mpiexec",
+      mpi=get_mpi,
       tasks=lambda wildcards: int(SIMULATIONS.loc[int(wildcards.id), "tasks"])
     conda:
         "../../results/fipy~{rev}/suite~{suite}/environment.yml"
@@ -18,7 +18,7 @@ rule solve:
     shell:
         r"""
         FIPY_SOLVERS={wildcards.suite} \
-            {resources.mpi} -n {resources.tasks} \
+            {resources.mpi} \
             python {input.benchmark:q} \
             --solver=LinearGMRESSolver \
             --preconditioner=JacobiPreconditioner \

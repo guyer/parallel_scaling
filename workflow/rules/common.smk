@@ -80,3 +80,12 @@ def get_simulations(config):
     fipy_revs = pd.DataFrame(config["fipy_revs"], columns=["fipy_rev"])
 
     return benchmarks.join(fipy_revs, how="cross")
+
+def get_mpi(wildcards):
+    simulation = SIMULATIONS.loc[int(wildcards.id)]
+    if simulation.tasks == 1:
+        mpi = ""
+    else:
+        mpi = f"mpiexec -n {simulation['tasks']}"
+
+    return mpi
