@@ -1,5 +1,7 @@
 from pathlib import Path
 import pandas as pd
+from matplotlib import pyplot as plt
+import matplotlib
 
 configfile: "config/config.yml"
 
@@ -19,11 +21,30 @@ print(SIMULATIONS)
 rule all:
     localrule: True
     input:
-        "results/total_times.json",
-        expand("results/plots/fipy~{rev}/{benchmark}/{plot}.png",
-               rev=config["fipy_revs"],
-               benchmark=config["benchmark"],
-               plot=["total", "prepare", "solve"])
+        "results/plots/scaling.png"
+
+rule plot_scaling:
+    localrule: True
+    output:
+        "results/plots/scaling.png"
+    input:
+        "results/all.json"
+    run:
+        matplotlib.use('Agg')
+
+        df = pd.read_json(input[0])
+
+        ax = plt.subplot(1, 1, 1)
+        style = {
+            "petsc": "x-b",
+            "no-pysparse": "+-r",
+            "pysparse": "^-C1",
+            "scipy": "v-g"
+        }
+        for name, group in df.groupby("suite"):
+            group.plot("tasks", "elapsed / s", style=style[name], loglog=True, ax=ax, label=name)
+
+        plt.savefig(output[0])
 
 rule bootstrap:
     input:
@@ -43,7 +64,9 @@ rule aggregate_all_results:
     log:
         "logs/aggregate_all_results.log"
     run:
-        concat_json(input.logs, output[0], log[0])
+        metrics = SIMULATIONS.apply(load_metrics, axis=1)
+        df = pd.concat([SIMULATIONS, metrics], axis=1)
+        df.to_json(output[0], date_format="iso")
 
 rule plot_permutations_timed:
     output:
