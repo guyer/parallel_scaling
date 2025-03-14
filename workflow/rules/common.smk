@@ -73,7 +73,7 @@ def get_simulations(config):
 
     benchmarks = pd.concat(suites)
     benchmarks["benchmark"] = config["benchmark"]
-    benchmarks["dx"] = config["dx"]
+    benchmarks["nx"] = config["nx"]
     benchmarks["totaltime"] = config["totaltime"]
     benchmarks["hostname"] = platform.node()
 

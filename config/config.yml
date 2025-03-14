@@ -1,0 +1,33 @@
+fipy_url: "https://github.com/usnistgov/fipy.git"
+
+fipy_revs:
+# - "d8a569e79"
+# - "371d28468" # patched "62cbf2211"
+# - "ef3db887e" # patched "b873c7e3f"
+# - "f715725b4" # patched "2054173bf"
+# - "742c901e9" # patched "36bff3800"
+- "a5f233aa7" # patched "2c7ac213b"
+
+# nx:
+#   min: 16
+#   max: 1024
+#   steps: 3
+nx: 1024
+
+suites:
+  "petsc":
+    tasks:
+      min: 1
+      max: 2 # 64
+      steps: 2 # 7
+  "no-pysparse":
+    tasks:
+      min: 1
+      max: 2 # 64
+      steps: 2 # 7
+  "pysparse":
+  "scipy":
+
+totaltime: 0.8 # 8.
+
+benchmark: manufactured_solutions
