@@ -1,0 +1,88 @@
+from pathlib import Path
+import pandas as pd
+
+configfile: "config/config.yml"
+
+include: "rules/common.smk"
+include: "rules/aggregate.smk"
+include: "rules/clone.smk"
+include: "rules/permutations.smk"
+include: "rules/logs.smk"
+include: "rules/solve.smk"
+
+report: "report/workflow.rst"
+
+simulation_file = Path(config["simulations"])
+if simulation_file.exists():
+    SIMULATIONS = pd.read_csv(simulation_file).set_index("id", drop=False)
+else:
+    SIMULATIONS = pd.DataFrame(columns=["fipy_rev", "suite", "id"])
+
+rule all:
+    localrule: True
+    input:
+        "results/total_times.json",
+        expand("results/plots/fipy~{rev}/{benchmark}/{plot}.png",
+               rev=config["fipy_revs"],
+               benchmark=config["benchmark"],
+               plot=["total", "prepare", "solve"])
+
+# rule all_permutations:
+#     output:
+#         "config/all_permutations.csv"
+#     input:
+#         benchmarks="config/benchmark_permutations.csv",
+#         fipy_revs="config/fipy_permutations.csv"
+#     run:
+#         benchmarks = pd.read_csv(input["benchmarks"], index_col=False)
+#         fipy_revs = pd.read_csv(input["fipy_revs"], index_col=False)
+#         df = benchmarks.join(fipy_revs, how="cross")
+#         df = df[~((df["solver"].isin(["LinearLUSolver", "LinearJORSolver"])
+#                   & (df["preconditioner"] != "none")))]
+#         df = df[~(df["preconditioner"] == "MultilevelSolverSmootherPreconditioner")]
+#         df.to_csv(output[0], index_label="id")
+
+rule all_permutations:
+    output:
+        "config/all_permutations.csv"
+    input:
+        benchmarks="config/benchmark_permutations.csv",
+#         fipy_revs="config/fipy_permutations.csv"
+    run:
+        benchmarks = pd.read_csv(input["benchmarks"], index_col=False)
+        fipy_revs = pd.DataFrame(config["fipy_revs"], columns=["fipy_rev"])
+        df = benchmarks.join(fipy_revs, how="cross")
+        df.to_csv(output[0], index_label="id")
+
+rule bootstrap:
+    input:
+        expand("results/fipy~{rev}/suite~{suite}/environment.yml",
+               rev=config["fipy_revs"],
+               suite=config["suites"])
+
+rule aggregate_all_results:
+    output:
+        "results/all.json"
+    input:
+        logs=expand("results/fipy~{rev}/suite~{suite}/{id}/metrics.json",
+                    zip,
+                    rev=SIMULATIONS["fipy_rev"],
+                    suite=SIMULATIONS["suite"],
+                    id=SIMULATIONS["id"])
+    log:
+        "logs/aggregate_all_results.log"
+    run:
+        concat_json(input.logs, output[0], log[0])
+
+rule plot_permutations_timed:
+    output:
+        total="results/plots/all_permutations_timed.png",
+    input:
+        "results/all_permutations_timed.json"
+    log:
+        "logs/plot_permutations_timed.log"
+    run:
+        from workflow.scripts.plot_permutations import plot_all
+
+        df = pd.read_json(input[0])
+        plot_all(df, output.total, ymin=1e0, ymax=1e4)
