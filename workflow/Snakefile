@@ -34,14 +34,20 @@ rule plot_scaling:
         df = pd.read_json(input[0])
 
         ax = plt.subplot(1, 1, 1)
-        style = {
-            "petsc": "x-b",
-            "no-pysparse": "+-r",
-            "pysparse": "^-C1",
-            "scipy": "v-g"
+        symbol = {
+            "petsc": "xb",
+            "no-pysparse": "+r",
+            "pysparse": "^C1",
+            "scipy": "vg"
         }
-        for name, group in df.groupby("suite"):
-            group.plot("tasks", "elapsed / s", style=style[name], loglog=True, ax=ax, label=name)
+        line = {
+            "a5f233aa7": "-",
+            "371d28468": "--"
+        }
+        for (suite, fipy_rev), group in df.groupby(["suite", "fipy_rev"]):
+            group.plot("tasks", "elapsed / s",
+                       style=symbol[suite], linestyle=line[fipy_rev],
+                       loglog=True, ax=ax, label=f"{suite}-{fipy_rev}")
 
         plt.savefig(output[0])
 
