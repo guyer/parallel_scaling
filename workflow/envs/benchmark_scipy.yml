@@ -1,0 +1,20 @@
+# This environment is redundant to environment.yml.
+# Present for symmetry with other solvers.
+channels:
+  - conda-forge
+dependencies:
+  - python==3.11
+  - numpy < 2.0
+  - scipy
+  - matplotlib-base
+  - future
+  - packaging
+  - mayavi
+  - gmsh <4.0|>=4.5.2
+  - pip
+  - jupyter
+  - jupyterlab_code_formatter
+  - sympy
+  - pip:
+    - git+https://github.com/usnistgov/steppyngstounes.git#egg=steppyngstounes
+    - ?"git+" + config["fipy_url"] + "@" + wildcards["rev"] + "#egg=fipy"

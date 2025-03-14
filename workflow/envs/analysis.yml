@@ -1,0 +1,23 @@
+name: benchmark_analysis
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - future
+  - gmsh
+  - ipdb
+  - ipywidgets
+  - jupyterlab
+  - matplotlib
+  - pandas
+  - scipy
+  - mpi4py
+  - mayavi
+  - nbdime
+  - petsc4py
+  - tqdm
+  - memory_profiler
+  - jupyterlab-git
+  - scikit-image
+  - tree
+  - pip
