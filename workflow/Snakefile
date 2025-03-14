@@ -20,7 +20,8 @@ print(SIMULATIONS)
 rule all:
     localrule: True
     input:
-        "results/plots/scaling.png"
+        "results/plots/scaling.png",
+        "results/plots/speedup.png"
 
 rule plot_scaling:
     localrule: True
@@ -49,6 +50,40 @@ rule plot_scaling:
                        style=symbol[suite], linestyle=line[fipy_rev],
                        loglog=True, ax=ax, label=f"{suite}-{fipy_rev}")
 
+        ax.set_ylabel("elapsed / s")
+        plt.savefig(output[0])
+
+rule plot_speedup:
+    localrule: True
+    output:
+        "results/plots/speedup.png"
+    input:
+        "results/all.json"
+    run:
+        matplotlib.use('Agg')
+
+        df = pd.read_json(input[0])
+
+        ax = plt.subplot(1, 1, 1)
+        symbol = {
+            "petsc": "xb",
+            "no-pysparse": "+r",
+            "pysparse": "^C1",
+            "scipy": "vg"
+        }
+        line = {
+            "a5f233aa7": "-",
+            "371d28468": "--"
+        }
+        baseline = df[(df["suite"] == "pysparse")
+                      & (df["fipy_rev"] == "371d28468")].iloc[0]["elapsed / s"]
+        df["speedup"] = baseline / df["elapsed / s"]
+        for (suite, fipy_rev), group in df.groupby(["suite", "fipy_rev"]):
+            group.plot("tasks", "speedup",
+                       style=symbol[suite], linestyle=line[fipy_rev],
+                       loglog=True, ax=ax, label=f"{suite}-{fipy_rev}")
+
+        ax.set_ylabel("speedup / ($t_{PySparse} / t_N$)")
         plt.savefig(output[0])
 
 rule bootstrap:
