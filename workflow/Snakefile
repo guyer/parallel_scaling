@@ -9,7 +9,6 @@ include: "rules/common.smk"
 include: "rules/aggregate.smk"
 include: "rules/clone.smk"
 include: "rules/permutations.smk"
-include: "rules/logs.smk"
 include: "rules/solve.smk"
 
 report: "report/workflow.rst"
