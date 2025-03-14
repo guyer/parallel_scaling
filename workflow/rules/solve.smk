@@ -3,13 +3,12 @@ rule solve:
         "results/fipy~{rev}/suite~{suite}/{id}/metrics.json"
     input:
         env="results/fipy~{rev}/suite~{suite}/environment.yml",
-        config=config["simulations"],
         benchmark=get_benchmark,
     params:
         config=get_config_by_id,
     resources:
       mpi="mpiexec",
-      tasks=lambda params: int(params.config["parallel_tasks"])
+      tasks=lambda wildcards: int(SIMULATIONS.loc[int(wildcards.id), "tasks"])
     conda:
         "../../results/fipy~{rev}/suite~{suite}/environment.yml"
     log:
@@ -21,8 +20,8 @@ rule solve:
         FIPY_SOLVERS={wildcards.suite} \
             {resources.mpi} -n {resources.tasks} \
             python {input.benchmark:q} \
-            --solver={params.config[solver]} \
-            --preconditioner={params.config[preconditioner]} \
+            --solver=LinearGMRESSolver \
+            --preconditioner=JacobiPreconditioner \
             --totaltime={params.config[totaltime]} \
             > {output} \
             2> {log:q} \

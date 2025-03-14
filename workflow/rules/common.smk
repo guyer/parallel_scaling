@@ -1,5 +1,7 @@
 import os
+import platform
 import pandas as pd
+import numpy as np
 
 def concat_csv(input, output, log):
     try:
@@ -46,3 +48,35 @@ def get_config_by_id(wildcards):
     id_config.update(config)
     id_config.update(SIMULATIONS.loc[int(wildcards.id)].to_dict())
     return id_config
+
+def get_simulations(config):
+    suites = []
+    for name, suite in config["suites"].items():
+        if suite is None:
+            suite = {}
+
+        tasks = suite.get("tasks", {})
+        min_tasks = tasks.get("min", 1)
+        max_tasks = tasks.get("max", 1)
+        tasks_steps = tasks.get("steps", 1)
+        tasks_base = tasks.get("base", 2)
+
+        tasks = np.logspace(start=np.log(min_tasks) / np.log(tasks_base),
+                            stop=np.log(max_tasks) / np.log(tasks_base),
+                            num=tasks_steps,
+                            base=tasks_base,
+                            dtype=int)
+        df = pd.DataFrame({"tasks": tasks})
+        df["suite"] = name
+
+        suites.append(df)
+
+    benchmarks = pd.concat(suites)
+    benchmarks["benchmark"] = config["benchmark"]
+    benchmarks["dx"] = config["dx"]
+    benchmarks["totaltime"] = config["totaltime"]
+    benchmarks["hostname"] = platform.node()
+
+    fipy_revs = pd.DataFrame(config["fipy_revs"], columns=["fipy_rev"])
+
+    return benchmarks.join(fipy_revs, how="cross")
