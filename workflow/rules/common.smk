@@ -49,37 +49,47 @@ def get_config_by_id(wildcards):
     id_config.update(SIMULATIONS.loc[int(wildcards.id)].to_dict())
     return id_config
 
+def get_logspace(config, key):
+    values = config.get(key, {})
+    min_val = values.get("min", 1)
+    max_val = values.get("max", 1)
+    val_steps = values.get("steps", 1)
+    val_base = values.get("base", 2)
+
+    space = np.logspace(start=np.log(min_val) / np.log(val_base),
+                        stop=np.log(max_val) / np.log(val_base),
+                        num=val_steps,
+                        base=val_base,
+                        dtype=int)
+
+    return space
+
 def get_simulations(config):
     suites = []
     for name, suite in config["suites"].items():
         if suite is None:
             suite = {}
 
-        tasks = suite.get("tasks", {})
-        min_tasks = tasks.get("min", 1)
-        max_tasks = tasks.get("max", 1)
-        tasks_steps = tasks.get("steps", 1)
-        tasks_base = tasks.get("base", 2)
-
-        tasks = np.logspace(start=np.log(min_tasks) / np.log(tasks_base),
-                            stop=np.log(max_tasks) / np.log(tasks_base),
-                            num=tasks_steps,
-                            base=tasks_base,
-                            dtype=int)
+        tasks = get_logspace(suite, "tasks")
         df = pd.DataFrame({"tasks": tasks})
         df["suite"] = name
 
         suites.append(df)
 
-    benchmarks = pd.concat(suites)
-    benchmarks["benchmark"] = config["benchmark"]
-    benchmarks["nx"] = config["nx"]
-    benchmarks["totaltime"] = config["totaltime"]
-    benchmarks["hostname"] = platform.node()
+    nx = get_logspace(config, "nx")
+    df = pd.DataFrame({"nx": nx})
+    df["benchmark"] = config["benchmark"]
+    df["totaltime"] = config["totaltime"]
+    df["hostname"] = platform.node()
 
     fipy_revs = pd.DataFrame(config["fipy_revs"], columns=["fipy_rev"])
 
-    return benchmarks.join(fipy_revs, how="cross")
+    df = df.join(fipy_revs, how="cross")
+    df = df.join(pd.concat(suites), how="cross")
+
+    df = pd.concat([df] * config.get("replicate", 1), ignore_index=True)
+
+    return df
 
 def get_mpi(wildcards):
     simulation = SIMULATIONS.loc[int(wildcards.id)]

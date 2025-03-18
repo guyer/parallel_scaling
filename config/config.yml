@@ -8,11 +8,12 @@ fipy_revs:
 # - "742c901e9" # patched "36bff3800"
 - "a5f233aa7" # patched "2c7ac213b"
 
-# nx:
-#   min: 16
-#   max: 1024
-#   steps: 3
-nx: 1024
+replicate: 5
+
+nx:
+  min: 16
+  max: 1024
+  steps: 3
 
 suites:
   "petsc":
