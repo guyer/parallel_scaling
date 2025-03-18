@@ -12,6 +12,7 @@ dependencies:
   - bwa =0.7.17
   - pygments
   - pandas
+  - scipy
   - nbconvert
   - ipython
   - ca-certificates
