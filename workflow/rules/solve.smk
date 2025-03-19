@@ -23,6 +23,7 @@ rule solve:
             --solver=LinearGMRESSolver \
             --preconditioner=JacobiPreconditioner \
             --totaltime={params.config[totaltime]} \
+            --nx={params.config[nx]} \
             > {output} \
             2> {log:q} \
             || touch {output:q}
