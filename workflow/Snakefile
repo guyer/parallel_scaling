@@ -51,7 +51,7 @@ rule plot_scaling:
                        loglog=True, ax=ax, label=f"{suite}-{fipy_rev}")
 
         ax.set_ylabel("elapsed / s")
-        plt.savefig(output[0])
+        fig.savefig(output[0])
 
 rule plot_speedup:
     localrule: True
@@ -84,7 +84,7 @@ rule plot_speedup:
                        loglog=True, ax=ax, label=f"{suite}-{fipy_rev}")
 
         ax.set_ylabel("speedup / ($t_{PySparse} / t_N$)")
-        plt.savefig(output[0])
+        fig.savefig(output[0])
 
 rule bootstrap:
     input:
