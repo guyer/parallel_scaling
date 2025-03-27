@@ -12,8 +12,8 @@ replicate: 5
 
 nx:
   min: 16
-  max: 1024
-  steps: 3
+  max: 2048
+  steps: 8
 
 suites:
   "petsc":
