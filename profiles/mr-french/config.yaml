@@ -7,3 +7,4 @@ latency-wait: 90
 default-resources:
   - mem=1mb
   - slurm_partition="faster"
+  - runtime=120
