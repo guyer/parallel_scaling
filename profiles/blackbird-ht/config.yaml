@@ -1,0 +1,11 @@
+printshellcmds: True
+jobs: 316
+executor: slurm
+use-conda: True
+conda-prefix: /wrk/guyer/snakemaking/conda
+latency-wait: 90
+default-resources:
+  - mem=1mb
+  - slurm_partition="batch"
+  - runtime=240
+  - constraint="ht"

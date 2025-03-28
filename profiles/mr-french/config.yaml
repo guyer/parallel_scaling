@@ -1,6 +1,7 @@
 printshellcmds: True
 jobs: 64
 executor: slurm
+use-conda: True
 conda-prefix: /toolbox/guyer/snakemaking/conda
 latency-wait: 90
 default-resources:
