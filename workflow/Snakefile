@@ -118,7 +118,7 @@ rule aggregate_glob_results:
                     zip,
                     rev=globbed.rev,
                     suite=globbed.suite,
-                    id=globed.id)
+                    id=globbed.id)
     log:
         "logs/aggregate_all_results.log"
     run:
