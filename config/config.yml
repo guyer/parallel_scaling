@@ -19,13 +19,13 @@ suites:
   "petsc":
     tasks:
       min: 1
-      max: 128
-      steps: 8
+      max: 64
+      steps: 7
   "no-pysparse":
     tasks:
       min: 1
-      max: 128
-      steps: 8
+      max: 64
+      steps: 7
   "pysparse":
   "scipy":
 
