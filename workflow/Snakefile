@@ -17,6 +17,8 @@ SIMULATIONS = get_simulations(config)
 
 print(SIMULATIONS)
 
+globbed = glob_wildcards("results/fipy~{rev}/suite~{suite}/{id}/metrics.json")
+
 rule all:
     localrule: True
     input:
@@ -101,6 +103,22 @@ rule aggregate_all_results:
                     rev=SIMULATIONS["fipy_rev"],
                     suite=SIMULATIONS["suite"],
                     id=SIMULATIONS.index)
+    log:
+        "logs/aggregate_all_results.log"
+    run:
+        metrics = SIMULATIONS.apply(load_metrics, axis=1)
+        df = pd.concat([SIMULATIONS, metrics], axis=1)
+        df.to_json(output[0], date_format="iso")
+
+rule aggregate_glob_results:
+    output:
+        "results/glob.json"
+    input:
+        logs=expand("results/fipy~{rev}/suite~{suite}/{id}/metrics.json",
+                    zip,
+                    rev=globbed.rev,
+                    suite=globbed.suite,
+                    id=globed.id
     log:
         "logs/aggregate_all_results.log"
     run:
