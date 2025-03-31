@@ -120,10 +120,11 @@ rule aggregate_glob_results:
                     suite=globbed.suite,
                     id=globbed.id)
     log:
-        "logs/aggregate_all_results.log"
+        "logs/aggregate_glob_results.log"
     run:
-        metrics = SIMULATIONS.apply(load_metrics, axis=1)
-        df = pd.concat([SIMULATIONS, metrics], axis=1)
+        subset = SIMULATIONS[globbed.id]
+        metrics = subset.apply(load_metrics, axis=1)
+        df = pd.concat([subset, metrics], axis=1)
         df.to_json(output[0], date_format="iso")
 
 rule plot_permutations_timed:
