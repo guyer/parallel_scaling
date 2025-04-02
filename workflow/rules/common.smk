@@ -102,4 +102,7 @@ def get_mpi(wildcards):
 
 def load_metrics(r):
     fname = f"results/fipy~{r.fipy_rev}/suite~{r.suite}/{r.name}/metrics.json"
-    return pd.read_json(fname, typ='series')
+    try:
+        return pd.read_json(fname, typ='series')
+    except ValueError:
+        return pd.Series([])
