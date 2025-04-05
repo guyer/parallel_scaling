@@ -51,7 +51,8 @@ rule dendrite_1D:
         FIPY_SOLVERS={wildcards.suite} \
             {resources.mpi} \
             python {input.benchmark:q} {input.params:q} {output:q} \
-            &2> {log:q}
+            > {output} \
+            2> {log:q}
         """
 
 rule dendrite_1D_params:
