@@ -49,7 +49,7 @@ def get_config_by_id(wildcards):
     id_config.update(SIMULATIONS.loc[int(wildcards.id)].to_dict())
     return id_config
 
-def get_logspace(config, key):
+def get_logspace(config, key, dtype=int):
     values = config.get(key, {})
     min_val = values.get("min", 1)
     max_val = values.get("max", 1)
@@ -60,7 +60,7 @@ def get_logspace(config, key):
                         stop=np.log(max_val) / np.log(val_base),
                         num=val_steps,
                         base=val_base,
-                        dtype=int)
+                        dtype=dtype)
 
     return space
 
@@ -76,10 +76,14 @@ def get_simulations(config):
 
         suites.append(df)
 
-    nx = get_logspace(config, "nx")
-    df = pd.DataFrame({"nx": nx})
+    dx = get_logspace(config, "dx", dtype=float)
+    df = pd.DataFrame({"dx": dx})
+    dt = get_logspace(config, "dt", dtype=float)
+    df = df.join(pd.DataFrame({"dt": dt}), how="cross")
+
     df["benchmark"] = config["benchmark"]
-    df["totaltime"] = config["totaltime"]
+    df["t_max"] = config["t_max"]
+    df["r0"] = config["r0"]
     df["hostname"] = platform.node()
 
     fipy_revs = pd.DataFrame(config["fipy_revs"], columns=["fipy_rev"])

@@ -1,3 +1,5 @@
+import json
+
 rule solve:
     output:
         "results/fipy~{rev}/suite~{suite}/{id}/metrics.json"
@@ -28,6 +30,38 @@ rule solve:
             2> {log:q} \
             || touch {output:q}
         """
+
+rule dendrite_1D:
+    output:
+        "results/fipy~{rev}/suite~{suite}/dendrite-1D/{id}/metrics.csv"
+    input:
+        benchmark="workflow/scripts/dendrite-1D.py",
+        params="results/fipy~{rev}/suite~{suite}/dendrite-1D/{id}/params.json"
+    resources:
+      mpi=get_mpi,
+      tasks=lambda wildcards: int(SIMULATIONS.loc[int(wildcards.id), "tasks"])
+    conda:
+        "../../results/fipy~{rev}/suite~{suite}/environment.yml"
+    log:
+        "logs/fipy~{rev}/suite~{suite}/dendrite-1D/{id}/notebooks/benchmark.log"
+    benchmark:
+        "benchmarks/fipy~{rev}/suite~{suite}/dendrite-1D/benchmark-{id}.tsv"
+    shell:
+        r"""
+        FIPY_SOLVERS={wildcards.suite} \
+            {resources.mpi} \
+            python {input.benchmark:q} {input.params:q} {output:q} \
+            &2> {log:q}
+        """
+
+rule dendrite_1D_params:
+    output:
+        "results/fipy~{rev}/suite~{suite}/dendrite-1D/{id}/params.json"
+    params:
+        config=get_config_by_id,
+    run:
+        with open(output[0], "w") as f:
+            json.dump(params.config, f)
 
 rule ipynb2py:
     output:

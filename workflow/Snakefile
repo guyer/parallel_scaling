@@ -2,6 +2,7 @@ from pathlib import Path
 import pandas as pd
 from matplotlib import pyplot as plt
 import matplotlib
+import json
 
 configfile: "config/config.yml"
 
@@ -15,7 +16,7 @@ report: "report/workflow.rst"
 
 SIMULATIONS = get_simulations(config)
 
-print(SIMULATIONS)
+# print(SIMULATIONS)
 
 globbed = glob_wildcards("results/fipy~{rev}/suite~{suite}/{id}/metrics.json")
 
@@ -139,3 +140,27 @@ rule plot_permutations_timed:
 
         df = pd.read_json(input[0])
         plot_all(df, output.total, ymin=1e0, ymax=1e4)
+
+rule plot_dendrites:
+    output:
+        "results/plots/dendrites.png"
+    input:
+        expand("results/fipy~{rev}/suite~{suite}/dendrite-1D/{id}/metrics.csv",
+               zip,
+               rev=SIMULATIONS["fipy_rev"],
+               suite=SIMULATIONS["suite"],
+               id=SIMULATIONS.index)
+    run:
+        matplotlib.use('Agg')
+        ax = plt.subplot(111)
+        for metric in input:
+            metric = Path(metric)
+            with open(metric.parent / "params.json", "r") as f:
+                params = json.load(f)
+            df = pd.read_csv(metric)
+            df.plot("t", "tip_position", ax=ax,
+                    # marker=".", linestyle="", markersize=1,
+                    label=f"dx={params['dx']} dt={params['dt']}")
+        plt.ylabel("tip_position")
+        plt.savefig(output[0])
+        
