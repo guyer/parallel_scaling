@@ -51,22 +51,25 @@ def get_config_by_id(wildcards):
 
 def get_logspace(config, key, dtype=int):
     values = config.get(key, {})
-    min_val = values.get("min", 1)
-    max_val = values.get("max", 1)
-    val_steps = values.get("steps", 1)
-    val_base = values.get("base", 2)
+    if isinstance(values, dict):
+        min_val = values.get("min", 1)
+        max_val = values.get("max", 1)
+        val_steps = values.get("steps", 1)
+        val_base = values.get("base", 2)
 
-    space = np.logspace(start=np.log(min_val) / np.log(val_base),
-                        stop=np.log(max_val) / np.log(val_base),
-                        num=val_steps,
-                        base=val_base,
-                        dtype=dtype)
+        space = np.logspace(start=np.log(min_val) / np.log(val_base),
+                            stop=np.log(max_val) / np.log(val_base),
+                            num=val_steps,
+                            base=val_base,
+                            dtype=dtype)
+    else:
+        space = np.array([values])
 
     return space
 
-def get_simulations(config):
+def build_configurations(config):
     suites = []
-    for name, suite in config["suites"].items():
+    for name, suite in config.get("suites", {}).items():
         if suite is None:
             suite = {}
 
@@ -92,6 +95,25 @@ def get_simulations(config):
     df = df.join(pd.concat(suites), how="cross")
 
     df = pd.concat([df] * config.get("replicate", 1), ignore_index=True)
+
+    return df
+
+def get_simulations(config):
+    default = config.copy()
+    del default["simulation"]
+
+    dfs = []
+    for name, simulation in config["simulation"].items():
+        updated = default.copy()
+        if simulation is not None:
+            updated.update(simulation)
+        df = build_configurations(updated)
+        df["simulation"] = name
+        dfs.append(df)
+
+    df = pd.concat(dfs, ignore_index=True)
+    df["index"] = df.apply(lambda r: f"{hash(frozenset(r)) & ((1 << 64) - 1):016x}", axis=1)
+    df.set_index("index", inplace=True)
 
     return df
 

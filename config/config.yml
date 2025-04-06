@@ -7,30 +7,31 @@ fipy_revs:
 # - "f715725b4" # patched "2054173bf"
 # - "742c901e9" # patched "36bff3800"
 - "a5f233aa7" # patched "2c7ac213b"
-
 replicate: 1
-
 suites:
   "petsc":
     tasks:
       min: 1
       max: 1
       steps: 1
-
 Lx: 960
-r0: 8
+dx: 0.5
+dt: 0.15
 t_max: 1500
-dx:
-  min: 0.1
-  max: 2.
-  steps: 5
-  base: 10
-dt:
-  min: 0.15
-  max: 0.15
-  steps: 1
-  base: 10
+r0: 8
 view: False
-
-
 benchmark: dendrite-1D
+
+simulation:
+  sweep_dx:
+    dx:
+      min: 0.1
+      max: 2.
+      steps: 5
+      base: 10
+  sweep_dt:
+    dt:
+      min: 0.1
+      max: 0.7
+      steps: 10
+      base: 10
