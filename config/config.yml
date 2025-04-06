@@ -23,13 +23,13 @@ view: False
 benchmark: dendrite-1D
 
 simulation:
-  sweep_dx:
+  scan_dx:
     dx:
       min: 0.1
       max: 2.
       steps: 5
       base: 10
-  sweep_dt:
+  scan_dt:
     dt:
       min: 0.1
       max: 0.7
