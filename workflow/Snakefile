@@ -15,10 +15,15 @@ include: "rules/plot.smk"
 
 report: "report/workflow.rst"
 
-SIMULATIONS = get_simulations(config)
-SIMULATIONS_vs_dx = SIMULATIONS[SIMULATIONS["simulation"] == "sweep_dx"]
+CONFIGURATIONS = get_configurations(config)
+SIMULATIONS = {}
+for key, configuration in CONFIGURATIONS.items():
+    SIMULATIONS[key] = get_simulations(configuration)
 
-# print(SIMULATIONS)
+SIMULATIONS["all"] = pd.concat(SIMULATIONS.values())
+
+# print(SIMULATIONS["sweep_dx"])
+# print(SIMULATIONS["all"])
 
 globbed = glob_wildcards("results/fipy~{rev}/suite~{suite}/{id}/metrics.json")
 
@@ -103,14 +108,14 @@ rule aggregate_all_results:
     input:
         logs=expand("results/fipy~{rev}/suite~{suite}/{id}/metrics.json",
                     zip,
-                    rev=SIMULATIONS["fipy_rev"],
-                    suite=SIMULATIONS["suite"],
-                    id=SIMULATIONS.index)
+                    rev=SIMULATIONS["all"]["fipy_rev"],
+                    suite=SIMULATIONS["all"]["suite"],
+                    id=SIMULATIONS["all"].index)
     log:
         "logs/aggregate_all_results.log"
     run:
-        metrics = SIMULATIONS.apply(load_metrics, axis=1)
-        df = pd.concat([SIMULATIONS, metrics], axis=1)
+        metrics = SIMULATIONS["all"].apply(load_metrics, axis=1)
+        df = pd.concat([SIMULATIONS["all"], metrics], axis=1)
         df.to_json(output[0], date_format="iso")
 
 rule aggregate_glob_results:
@@ -125,7 +130,7 @@ rule aggregate_glob_results:
     log:
         "logs/aggregate_glob_results.log"
     run:
-        subset = SIMULATIONS.loc[[int(v) for v in globbed.id]]
+        subset = SIMULATIONS["all"].loc[[int(v) for v in globbed.id]]
         metrics = subset.apply(load_metrics, axis=1)
         df = pd.concat([subset, metrics], axis=1)
         df.to_json(output[0], date_format="iso")
@@ -147,10 +152,10 @@ rule plot_dendrites_vs_dx:
     output:
         "results/plots/dendrites_vs_dx.png"
     input:
-        expand("results/fipy~{rev}/suite~{suite}/dendrite-1D/{id}/metrics.csv",
+        expand("results/fipy~{rev}/suite~{suite}/{id}/metrics.csv",
                zip,
-               rev=SIMULATIONS_vs_dx["fipy_rev"],
-               suite=SIMULATIONS_vs_dx["suite"],
-               id=SIMULATIONS_vs_dx.index)
+               rev=SIMULATIONS["sweep_dx"]["fipy_rev"],
+               suite=SIMULATIONS["sweep_dx"]["suite"],
+               id=SIMULATIONS["sweep_dx"].index)
     run:
         plot_metrics(input, output[0])

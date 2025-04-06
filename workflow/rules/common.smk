@@ -37,7 +37,7 @@ def get_permutation_ids(wildcards):
     return df.index.map("{:07d}".format)
 
 def get_benchmark(wildcards):
-    benchmark = SIMULATIONS.loc[int(wildcards.id), 'benchmark']
+    benchmark = SIMULATIONS["all"].loc[wildcards.id, 'benchmark']
     return f"workflow/scripts/{benchmark}.py"
 
 # https://bioinformatics.stackexchange.com/questions/18248/pick-matching-entry-from-snakemake-config-table
@@ -47,7 +47,7 @@ def get_config_by_id(wildcards):
 
     id_config = {}
     id_config.update(config)
-    id_config.update(SIMULATIONS.loc[int(wildcards.id)].to_dict())
+    id_config.update(SIMULATIONS["all"].loc[wildcards.id].to_dict())
     return id_config
 
 def get_logspace(config, key, dtype=int):
@@ -113,25 +113,27 @@ def hash_row(row):
     return dhash.hexdigest()
 
 def get_simulations(config):
-    default = config.copy()
-    del default["simulation"]
-
-    dfs = []
-    for name, simulation in config["simulation"].items():
-        updated = default.copy()
-        if simulation is not None:
-            updated.update(simulation)
-        df = build_configurations(updated)
-        dfs.append(df)
-
-    df = pd.concat(dfs, ignore_index=True)
+    df = build_configurations(config)
     df["index"] = df.apply(hash_row, axis=1)
     df.set_index("index", inplace=True)
 
     return df
 
+def get_configurations(config):
+    default = config.copy()
+    del default["simulation"]
+
+    configurations = {}
+    for name, simulation in config["simulation"].items():
+        updated = default.copy()
+        if simulation is not None:
+            updated.update(simulation)
+        configurations[name] = updated
+
+    return configurations
+
 def get_mpi(wildcards):
-    simulation = SIMULATIONS.loc[int(wildcards.id)]
+    simulation = SIMULATIONS["all"].loc[wildcards.id]
     if simulation.tasks == 1:
         mpi = ""
     else:

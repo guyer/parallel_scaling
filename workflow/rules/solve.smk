@@ -10,13 +10,13 @@ rule solve:
         config=get_config_by_id,
     resources:
       mpi=get_mpi,
-      tasks=lambda wildcards: int(SIMULATIONS.loc[int(wildcards.id), "tasks"])
+      tasks=lambda wildcards: int(SIMULATIONS["all"].loc[wildcards.id, "tasks"])
     conda:
         "../../results/fipy~{rev}/suite~{suite}/environment.yml"
     log:
         "logs/fipy~{rev}/suite~{suite}/{id}/notebooks/benchmark.log"
     benchmark:
-        "benchmarks/fipy~{rev}/suite~{suite}/benchmark-{id}.tsv"
+        "benchmarks/fipy~{rev}/suite~{suite}/{id}/benchmark.tsv"
     shell:
         r"""
         FIPY_SOLVERS={wildcards.suite} \
@@ -33,19 +33,19 @@ rule solve:
 
 rule dendrite_1D:
     output:
-        "results/fipy~{rev}/suite~{suite}/dendrite-1D/{id}/metrics.csv"
+        "results/fipy~{rev}/suite~{suite}/{id}/metrics.csv"
     input:
         benchmark="workflow/scripts/dendrite-1D.py",
-        params="results/fipy~{rev}/suite~{suite}/dendrite-1D/{id}/params.json"
+        params="results/fipy~{rev}/suite~{suite}/{id}/params.json"
     resources:
       mpi=get_mpi,
-      tasks=lambda wildcards: int(SIMULATIONS.loc[int(wildcards.id), "tasks"])
+      tasks=lambda wildcards: int(SIMULATIONS["all"].loc[wildcards.id, "tasks"])
     conda:
         "../../results/fipy~{rev}/suite~{suite}/environment.yml"
     log:
-        "logs/fipy~{rev}/suite~{suite}/dendrite-1D/{id}/notebooks/benchmark.log"
+        "logs/fipy~{rev}/suite~{suite}/{id}/notebooks/benchmark.log"
     benchmark:
-        "benchmarks/fipy~{rev}/suite~{suite}/dendrite-1D/benchmark-{id}.tsv"
+        "benchmarks/fipy~{rev}/suite~{suite}/{id}/benchmark.tsv"
     shell:
         r"""
         FIPY_SOLVERS={wildcards.suite} \
@@ -57,7 +57,7 @@ rule dendrite_1D:
 
 rule dendrite_1D_params:
     output:
-        "results/fipy~{rev}/suite~{suite}/dendrite-1D/{id}/params.json"
+        "results/fipy~{rev}/suite~{suite}/{id}/params.json"
     params:
         config=get_config_by_id,
     run:
