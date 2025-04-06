@@ -148,26 +148,10 @@ rule plot_permutations_timed:
         df = pd.read_json(input[0])
         plot_all(df, output.total, ymin=1e0, ymax=1e4)
 
-rule plot_dendrites_vs_dx:
+rule plot_dendrites:
     output:
-        "results/plots/dendrites_vs_dx.png"
+        "results/plots/dendrites_{scan}.png"
     input:
-        expand("results/fipy~{rev}/suite~{suite}/{id}/metrics.csv",
-               zip,
-               rev=SIMULATIONS["sweep_dx"]["fipy_rev"],
-               suite=SIMULATIONS["sweep_dx"]["suite"],
-               id=SIMULATIONS["sweep_dx"].index)
-    run:
-        plot_metrics(input, output[0])
-
-rule plot_dendrites_vs_dt:
-    output:
-        "results/plots/dendrites_vs_dt.png"
-    input:
-        expand("results/fipy~{rev}/suite~{suite}/{id}/metrics.csv",
-               zip,
-               rev=SIMULATIONS["sweep_dt"]["fipy_rev"],
-               suite=SIMULATIONS["sweep_dt"]["suite"],
-               id=SIMULATIONS["sweep_dt"].index)
+        get_scan_simulations
     run:
         plot_metrics(input, output[0])

@@ -147,3 +147,10 @@ def load_metrics(r):
         return pd.read_json(fname, typ='series')
     except ValueError:
         return pd.Series([])
+
+def get_scan_simulations(wildcards):
+    return expand("results/fipy~{rev}/suite~{suite}/{id}/metrics.csv",
+                  zip,
+                  rev=SIMULATIONS[wildcards.scan]["fipy_rev"],
+                  suite=SIMULATIONS[wildcards.scan]["suite"],
+                  id=SIMULATIONS[wildcards.scan].index)
