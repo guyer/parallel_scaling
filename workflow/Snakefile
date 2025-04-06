@@ -159,3 +159,15 @@ rule plot_dendrites_vs_dx:
                id=SIMULATIONS["sweep_dx"].index)
     run:
         plot_metrics(input, output[0])
+
+rule plot_dendrites_vs_dt:
+    output:
+        "results/plots/dendrites_vs_dt.png"
+    input:
+        expand("results/fipy~{rev}/suite~{suite}/{id}/metrics.csv",
+               zip,
+               rev=SIMULATIONS["sweep_dt"]["fipy_rev"],
+               suite=SIMULATIONS["sweep_dt"]["suite"],
+               id=SIMULATIONS["sweep_dt"].index)
+    run:
+        plot_metrics(input, output[0])
