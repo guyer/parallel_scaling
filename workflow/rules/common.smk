@@ -1,3 +1,4 @@
+import hashlib
 import os
 import platform
 import pandas as pd
@@ -98,6 +99,19 @@ def build_configurations(config):
 
     return df
 
+def hash_row(row):
+    # adapted from https://stackoverflow.com/a/67438471/2019542
+    #
+    # note: hash() is not stable across Python sessions
+    # https://stackoverflow.com/questions/27522626/hash-function-in-python-3-3-returns-different-results-between-sessions
+    dhash = hashlib.md5()
+    # We need to sort arguments so {'a': 1, 'b': 2} is
+    # the same as {'b': 2, 'a': 1}
+    encoded = row.sort_index().to_json().encode()
+    dhash.update(encoded)
+
+    return dhash.hexdigest()
+
 def get_simulations(config):
     default = config.copy()
     del default["simulation"]
@@ -108,11 +122,10 @@ def get_simulations(config):
         if simulation is not None:
             updated.update(simulation)
         df = build_configurations(updated)
-        df["simulation"] = name
         dfs.append(df)
 
     df = pd.concat(dfs, ignore_index=True)
-    df["index"] = df.apply(lambda r: f"{hash(frozenset(r)) & ((1 << 64) - 1):016x}", axis=1)
+    df["index"] = df.apply(hash_row, axis=1)
     df.set_index("index", inplace=True)
 
     return df
