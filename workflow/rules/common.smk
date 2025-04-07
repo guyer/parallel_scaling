@@ -128,12 +128,12 @@ def hash_row(row):
 
     return dhash.hexdigest()
 
-def get_simulations(config, fipy_permutations):
+def get_simulations(config):
     df = build_configurations(config)
 
     permutation_file = Path("config/fipy_permutations.csv")
     if (config["solver"] == "all") & permutation_file.exists():
-        permutations = pd.read_csv("config/fipy_permutations.csv")
+        permutations = pd.read_csv(permutation_file)
 
         df = df.merge(permutations, on=("fipy_rev", "suite"), how="outer")
     else:

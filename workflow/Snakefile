@@ -17,15 +17,9 @@ report: "report/workflow.rst"
 
 CONFIGURATIONS = get_configurations(config)
 
-permutation_file = Path("config/fipy_permutations.csv")
-if permutation_file.exists():
-    FIPY_PERMUTATIONS = pd.read_csv(permutation_file)
-else:
-    FIPY_PERMUTATIONS = None
-
 SIMULATIONS = {}
 for key, configuration in CONFIGURATIONS.items():
-    SIMULATIONS[key] = get_simulations(configuration, FIPY_PERMUTATIONS)
+    SIMULATIONS[key] = get_simulations(configuration)
 
 SIMULATIONS["all"] = pd.concat(SIMULATIONS.values())
 
