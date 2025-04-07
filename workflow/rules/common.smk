@@ -120,11 +120,10 @@ def hash_row(row):
     #
     # note: hash() is not stable across Python sessions
     # https://stackoverflow.com/questions/27522626/hash-function-in-python-3-3-returns-different-results-between-sessions
-    dhash = hashlib.md5()
     # We need to sort arguments so {'a': 1, 'b': 2} is
     # the same as {'b': 2, 'a': 1}
     encoded = row.sort_index().to_json().encode()
-    dhash.update(encoded)
+    dhash = hashlib.sha1(encoded, usedforsecurity=False)
 
     return dhash.hexdigest()
 
