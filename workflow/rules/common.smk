@@ -17,6 +17,20 @@ def concat_csv(input, output, log):
             f.write(repr(e))
         raise e
 
+def concat_tsv(input, output, log):
+    try:
+        li = [pd.read_csv(fname, delimiter="\t", index_col=False) for fname in input]
+        if li:
+            df = pd.concat(li, ignore_index=True)
+        else:
+            df = pd.DataFrame()
+        df.to_csv(output, index=False)
+    except Exception as e:
+        with open(log, 'w') as f:
+            # f.write(repr(e))
+            f.write(f"{input=}")
+        raise e
+
 def concat_json(input, output, log):
     try:
         li = [pd.read_json(fname) for fname in input]
@@ -46,7 +60,7 @@ def get_config_by_id(wildcards):
     global config
 
     id_config = {}
-    id_config.update(config)
+    # id_config.update(config)
     id_config.update(SIMULATIONS["all"].loc[wildcards.id].to_dict())
     return id_config
 
@@ -86,9 +100,11 @@ def build_configurations(config):
     df = df.join(pd.DataFrame({"dt": dt}), how="cross")
 
     df["benchmark"] = config["benchmark"]
+    df["Lx"] = config["Lx"]
     df["t_max"] = config["t_max"]
     df["r0"] = config["r0"]
     df["hostname"] = platform.node()
+    df["view"] = config["view"]
 
     fipy_revs = pd.DataFrame(config["fipy_revs"], columns=["fipy_rev"])
 
@@ -112,15 +128,43 @@ def hash_row(row):
 
     return dhash.hexdigest()
 
-def get_simulations(config):
+def get_simulations(config, fipy_permutations):
     df = build_configurations(config)
+
+    permutation_file = Path("config/fipy_permutations.csv")
+    if (config["solver"] == "all") & permutation_file.exists():
+        permutations = pd.read_csv("config/fipy_permutations.csv")
+
+        df = df.merge(permutations, on=("fipy_rev", "suite"), how="outer")
+    else:
+        if type(config["solver"]) not in [list, tuple]:
+            config["solver"] = [config["solver"]]
+        if type(config["preconditioner"]) not in [list, tuple]:
+            config["preconditioner"] = [config["preconditioner"]]
+
+        solvers = pd.DataFrame({"solver": config["solver"]})
+        preconditioners = pd.DataFrame({"preconditioner": config["preconditioner"]})
+        permutations = solvers.join(preconditioners, how="cross")
+        # it makes no sense to precondition LU
+        permutations = permutations.query("(solver != 'LinearLUSolver')"
+                                          "| (preconditioner == 'none')")
+        df = df.join(permutations, how="cross")
+
+    df = df[~((df["solver"].isin(["LinearLUSolver", "LinearJORSolver"])
+              & (df["preconditioner"] != "none")))]
+    df = df[~(df["preconditioner"] == "MultilevelSolverSmootherPreconditioner")]
+
     df["index"] = df.apply(hash_row, axis=1)
     df.set_index("index", inplace=True)
 
     return df
 
 def get_configurations(config):
-    default = config.copy()
+    default = {
+        "solver": None,
+        "preconditioner": None
+    }
+    default.update(config)
     del default["simulation"]
 
     configurations = {}
@@ -150,6 +194,13 @@ def load_metrics(r):
 
 def get_scan_simulations(wildcards):
     return expand("results/fipy~{rev}/suite~{suite}/{id}/metrics.csv",
+                  zip,
+                  rev=SIMULATIONS[wildcards.scan]["fipy_rev"],
+                  suite=SIMULATIONS[wildcards.scan]["suite"],
+                  id=SIMULATIONS[wildcards.scan].index)
+
+def get_scan_benchmarks(wildcards):
+    return expand("benchmarks/fipy~{rev}/suite~{suite}/{id}/benchmark-dendrite1D.tsv",
                   zip,
                   rev=SIMULATIONS[wildcards.scan]["fipy_rev"],
                   suite=SIMULATIONS[wildcards.scan]["suite"],

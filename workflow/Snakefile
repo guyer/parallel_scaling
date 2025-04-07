@@ -16,13 +16,21 @@ include: "rules/plot.smk"
 report: "report/workflow.rst"
 
 CONFIGURATIONS = get_configurations(config)
+
+permutation_file = Path("config/fipy_permutations.csv")
+if permutation_file.exists():
+    FIPY_PERMUTATIONS = pd.read_csv(permutation_file)
+else:
+    FIPY_PERMUTATIONS = None
+
 SIMULATIONS = {}
 for key, configuration in CONFIGURATIONS.items():
-    SIMULATIONS[key] = get_simulations(configuration)
+    SIMULATIONS[key] = get_simulations(configuration, FIPY_PERMUTATIONS)
 
 SIMULATIONS["all"] = pd.concat(SIMULATIONS.values())
 
-# print(SIMULATIONS["sweep_dx"])
+print(SIMULATIONS["scan_solver"])
+# print(SIMULATIONS["scan_dx"])
 # print(SIMULATIONS["all"])
 
 globbed = glob_wildcards("results/fipy~{rev}/suite~{suite}/{id}/metrics.json")
@@ -155,3 +163,35 @@ rule plot_dendrites:
         get_scan_simulations
     run:
         plot_metrics(input, output[0])
+
+rule tabulate_dendrites:
+    output:
+        "results/tables/dendrites_{scan}.json"
+    input:
+        simulations=get_scan_simulations
+    log:
+        "logs/pootie-shoe_{scan}.log"
+    run:
+        benchmarks = []
+        for path in input:
+            path = Path(path)
+#            print(f"{path=}")
+#            print(f"{path.parent / 'params.json'=}")
+            params = pd.read_json(path.parent / "params.json", typ="series")
+            params = pd.DataFrame([params])
+#            print(f"{params=}")
+            benchmark = "benchmarks" / Path("/".join(path.parts[1:-1])) / "benchmark-dendrite1D.tsv"
+            benchmark = pd.read_csv(benchmark, delimiter="\t")
+#            print(f"{benchmark=}")
+            benchmark = params.join(benchmark)
+            benchmarks.append(benchmark)
+
+#        print(f"{benchmarks=}")
+        benchmarks = pd.concat(benchmarks, ignore_index=True)
+
+        benchmarks.to_json(output[0])
+
+#        paths = [Path(path).parts[1:-1] for path in input]
+#        paths = [Path("/".join(path)) for path in paths]
+#        paths = ["benchmarks" / path / "benchmark-dendrite1D.tsv" for path in paths]
+#        concat_tsv(paths, output[0], log[0])

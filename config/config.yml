@@ -7,6 +7,7 @@ fipy_revs:
 # - "f715725b4" # patched "2054173bf"
 # - "742c901e9" # patched "36bff3800"
 - "a5f233aa7" # patched "2c7ac213b"
+
 replicate: 1
 suites:
   "petsc":
@@ -35,3 +36,7 @@ simulation:
       max: 0.7
       steps: 10
       base: 10
+  scan_solver:
+    t_max: 100
+    solver: all
+    preconditioner: all

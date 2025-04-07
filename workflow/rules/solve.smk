@@ -45,14 +45,15 @@ rule dendrite_1D:
     log:
         "logs/fipy~{rev}/suite~{suite}/{id}/notebooks/benchmark.log"
     benchmark:
-        "benchmarks/fipy~{rev}/suite~{suite}/{id}/benchmark.tsv"
+        "benchmarks/fipy~{rev}/suite~{suite}/{id}/benchmark-dendrite1D.tsv"
     shell:
         r"""
         FIPY_SOLVERS={wildcards.suite} \
             {resources.mpi} \
             python {input.benchmark:q} {input.params:q} {output:q} \
             > {output} \
-            2> {log:q}
+            2> {log:q} \
+            || touch {output:q}
         """
 
 rule dendrite_1D_params:
