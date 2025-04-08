@@ -10,7 +10,7 @@ rule solve:
         config=get_config_by_id,
     resources:
       mpi=get_mpi,
-      tasks=lambda wildcards: int(SIMULATIONS["all"].loc[wildcards.id, "tasks"])
+      tasks=lambda wildcards: int(SIMULATIONS.loc[wildcards.id, "task"])
     conda:
         "../../results/fipy~{rev}/suite~{suite}/environment.yml"
     log:
@@ -39,7 +39,7 @@ rule dendrite_1D:
         params="results/fipy~{rev}/suite~{suite}/{id}/params.json"
     resources:
       mpi=get_mpi,
-      tasks=lambda wildcards: int(SIMULATIONS["all"].loc[wildcards.id, "tasks"])
+      tasks=lambda wildcards: int(SIMULATIONS.loc[wildcards.id, "task"])
     conda:
         "../../results/fipy~{rev}/suite~{suite}/environment.yml"
     log:

@@ -13,7 +13,7 @@ rule fipy_permutations:
         "config/fipy_permutations.csv"
     input:
         expand("config/fipy~{rev}/suite_permutations.csv",
-               rev=config["fipy_revs"])
+               rev=config["fipy_rev"])
     log:
         "logs/all_permutations.log"
     run:
@@ -24,7 +24,7 @@ rule suite_permutations:
         "config/fipy~{rev}/suite_permutations.csv"
     input:
         expand("config/fipy~{{rev}}/suite~{suite}/permutations.csv",
-               suite=config["suites"])
+               suite=config["suite"])
     log:
         "logs/fipy~{rev}/suite_permutations.csv"
     run:

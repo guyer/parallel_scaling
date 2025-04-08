@@ -15,17 +15,9 @@ include: "rules/plot.smk"
 
 report: "report/workflow.rst"
 
-CONFIGURATIONS = get_configurations(config)
+SIMULATIONS = get_simulations(config)
 
-SIMULATIONS = {}
-for key, configuration in CONFIGURATIONS.items():
-    SIMULATIONS[key] = get_simulations(configuration)
-
-SIMULATIONS["all"] = pd.concat(SIMULATIONS.values())
-
-print(SIMULATIONS["scan_solver"])
-# print(SIMULATIONS["scan_dx"])
-# print(SIMULATIONS["all"])
+# print(SIMULATIONS)
 
 globbed = glob_wildcards("results/fipy~{rev}/suite~{suite}/{id}/metrics.json")
 
@@ -101,8 +93,8 @@ rule plot_speedup:
 rule bootstrap:
     input:
         expand("results/fipy~{rev}/suite~{suite}/environment.yml",
-               rev=config["fipy_revs"],
-               suite=config["suites"])
+               rev=config["fipy_rev"],
+               suite=config["suite"])
 
 rule aggregate_all_results:
     output:
@@ -110,14 +102,14 @@ rule aggregate_all_results:
     input:
         logs=expand("results/fipy~{rev}/suite~{suite}/{id}/metrics.json",
                     zip,
-                    rev=SIMULATIONS["all"]["fipy_rev"],
-                    suite=SIMULATIONS["all"]["suite"],
-                    id=SIMULATIONS["all"].index)
+                    rev=SIMULATIONS["fipy_rev"],
+                    suite=SIMULATIONS["suite"],
+                    id=SIMULATIONS.index)
     log:
         "logs/aggregate_all_results.log"
     run:
-        metrics = SIMULATIONS["all"].apply(load_metrics, axis=1)
-        df = pd.concat([SIMULATIONS["all"], metrics], axis=1)
+        metrics = SIMULATIONS.apply(load_metrics, axis=1)
+        df = pd.concat([SIMULATIONS, metrics], axis=1)
         df.to_json(output[0], date_format="iso")
 
 rule aggregate_glob_results:
@@ -132,7 +124,7 @@ rule aggregate_glob_results:
     log:
         "logs/aggregate_glob_results.log"
     run:
-        subset = SIMULATIONS["all"].loc[[int(v) for v in globbed.id]]
+        subset = SIMULATIONS.loc[[int(v) for v in globbed.id]]
         metrics = subset.apply(load_metrics, axis=1)
         df = pd.concat([subset, metrics], axis=1)
         df.to_json(output[0], date_format="iso")
@@ -160,11 +152,11 @@ rule plot_dendrites:
 
 rule tabulate_dendrites:
     output:
-        "results/tables/dendrites_{scan}.json"
+        "results/tables/dendrites_{simulation}.json"
     input:
         simulations=get_scan_simulations
     log:
-        "logs/pootie-shoe_{scan}.log"
+        "logs/pootie-shoe_{simulation}.log"
     run:
         benchmarks = []
         for path in input:

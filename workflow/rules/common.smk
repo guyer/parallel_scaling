@@ -1,8 +1,27 @@
+import functools
 import hashlib
 import os
 import platform
 import pandas as pd
 import numpy as np
+
+DEFAULT = {
+    'fipy_url': 'https://github.com/usnistgov/fipy.git',
+    'fipy_rev': ['a5f233aa7'],
+    'replicate': 1,
+    'Lx': 960,
+    'dx': 1.,
+    'dt': 0.15,
+    't_max': 1500,
+    'r0': 8,
+    'view': False,
+    'benchmark': 'dendrite-1D',
+    'task': 1,
+    'suite': 'petsc',
+    'simulation': 'scan_dx',
+    'solver': None,
+    'preconditioner': None
+}
 
 def concat_csv(input, output, log):
     try:
@@ -51,7 +70,7 @@ def get_permutation_ids(wildcards):
     return df.index.map("{:07d}".format)
 
 def get_benchmark(wildcards):
-    benchmark = SIMULATIONS["all"].loc[wildcards.id, 'benchmark']
+    benchmark = SIMULATIONS.loc[wildcards.id, 'benchmark']
     return f"workflow/scripts/{benchmark}.py"
 
 # https://bioinformatics.stackexchange.com/questions/18248/pick-matching-entry-from-snakemake-config-table
@@ -61,59 +80,123 @@ def get_config_by_id(wildcards):
 
     id_config = {}
     # id_config.update(config)
-    id_config.update(SIMULATIONS["all"].loc[wildcards.id].to_dict())
+    id_config.update(SIMULATIONS.loc[wildcards.id].to_dict())
     return id_config
 
-def get_logspace(config, key, dtype=int):
-    values = config.get(key, {})
-    if isinstance(values, dict):
-        min_val = values.get("min", 1)
-        max_val = values.get("max", 1)
-        val_steps = values.get("steps", 1)
-        val_base = values.get("base", 2)
+def get_dtype(value):
+    dtype = value.get("dtype", "float")
+    return {"float": float, "int": int}[dtype]
 
-        space = np.logspace(start=np.log(min_val) / np.log(val_base),
-                            stop=np.log(max_val) / np.log(val_base),
-                            num=val_steps,
-                            base=val_base,
-                            dtype=dtype)
-    else:
-        space = np.array([values])
+def get_space_parameters(value):
+    min_val = value.get("start", 1)
+    max_val = value.get("stop", 1)
+    val_steps = value.get("num", 1)
+    dtype = get_dtype(value)
+
+    return (min_val, max_val, val_steps, dtype)
+
+def get_linspace(value):
+    (min_val, max_val, val_steps, dtype) = get_space_parameters(value)
+
+    space = np.linspace(start=min_val,
+                        stop=max_val,
+                        num=val_steps,
+                        dtype=dtype)
 
     return space
 
+def get_logspace(value):
+    (min_val, max_val, val_steps, dtype) = get_space_parameters(value)
+    val_base = value.get("base", 2)
+
+    space = np.logspace(start=np.log(min_val) / np.log(val_base),
+                        stop=np.log(max_val) / np.log(val_base),
+                        num=val_steps,
+                        base=val_base,
+                        dtype=dtype)
+
+    return space
+
+def get_space(key, value):
+    """Return numbers spaced
+    If `value` is a list or tuple, return it.
+    If `value` is a single value, return a list containing `value`.
+    If `value` is a dictionary, interpret it as a space description:
+        - `start`
+        - `stop`
+        - `num`
+        - `base`, optional; if present, returns logspace
+        - `dtype`, default `int`
+    """
+    if isinstance(value, dict):
+        if "base" in value:
+            space = get_logspace(value)
+        else:
+            space = get_linspace(value)
+    elif not isinstance(value, (list, tuple)):
+        space = [value]
+    else:
+        space = value
+
+    return pd.DataFrame({key: space})
+
+def replace_from_json(config, key, json_file):
+    if (config[key] == "all") & json_file.exists():
+        config[key] = pd.read_json(json_file)[key].to_list()
+
+def build_configurations_base(config):
+    config = config.copy()
+    config["replicate"] = list(range(config.get("replicate", 1)))
+
+    path = Path(f"results/fipy~{config['fipy_rev']}/suite~{config['suite']}")
+    replace_from_json(config, "solver",
+                      path / "solvers.json")
+    replace_from_json(config, "preconditioner",
+                      path / "preconditioners.json")
+
+    parameters = []
+    for key, value in config.items():
+        parameters.append(get_space(key, value))
+
+    return functools.reduce(lambda a, b: a.join(b, how="cross"), parameters)
+
+def do_one(config, do_config, key, value_name, keys):
+    config = config.copy()
+    config.update(do_config)
+    config[key] = value_name
+
+    return expand_configurations(config, keys)
+
+def expand_configurations(config, keys=[]):
+    if not keys:
+        return [config]
+
+    config = config.copy()
+    key = keys[0]
+    value = config.pop(key)
+    configs = []
+    if isinstance(value, str):
+        configs += do_one(config, {}, key, value, keys[1:])
+    elif isinstance(value, dict):
+        for value_name, value_config in value.items():
+            configs += do_one(config, value_config, key, value_name, keys[1:])
+    elif isinstance(value, (list, tuple)):
+        for value_name in value:
+            configs += do_one(config, {}, key, value_name, keys[1:])
+
+    return configs
+
 def build_configurations(config):
-    suites = []
-    for name, suite in config.get("suites", {}).items():
-        if suite is None:
-            suite = {}
+    updated = DEFAULT.copy()
+    updated.update(config)
+    configs = expand_configurations(updated,
+                                    ["fipy_rev", "suite", "simulation"])
 
-        tasks = get_logspace(suite, "tasks")
-        df = pd.DataFrame({"tasks": tasks})
-        df["suite"] = name
+    dfs = []
+    for config in configs:
+        dfs.append(build_configurations_base(config))
 
-        suites.append(df)
-
-    dx = get_logspace(config, "dx", dtype=float)
-    df = pd.DataFrame({"dx": dx})
-    dt = get_logspace(config, "dt", dtype=float)
-    df = df.join(pd.DataFrame({"dt": dt}), how="cross")
-
-    df["benchmark"] = config["benchmark"]
-    df["Lx"] = config["Lx"]
-    df["t_max"] = config["t_max"]
-    df["r0"] = config["r0"]
-    df["hostname"] = platform.node()
-    df["view"] = config["view"]
-
-    fipy_revs = pd.DataFrame(config["fipy_revs"], columns=["fipy_rev"])
-
-    df = df.join(fipy_revs, how="cross")
-    df = df.join(pd.concat(suites), how="cross")
-
-    df = pd.concat([df] * config.get("replicate", 1), ignore_index=True)
-
-    return df
+    return pd.concat(dfs, ignore_index=True)
 
 def hash_row(row):
     # adapted from https://stackoverflow.com/a/67438471/2019542
@@ -130,25 +213,6 @@ def hash_row(row):
 def get_simulations(config):
     df = build_configurations(config)
 
-    permutation_file = Path("config/fipy_permutations.csv")
-    if (config["solver"] == "all") & permutation_file.exists():
-        permutations = pd.read_csv(permutation_file)
-
-        df = df.merge(permutations, on=("fipy_rev", "suite"), how="outer")
-    else:
-        if type(config["solver"]) not in [list, tuple]:
-            config["solver"] = [config["solver"]]
-        if type(config["preconditioner"]) not in [list, tuple]:
-            config["preconditioner"] = [config["preconditioner"]]
-
-        solvers = pd.DataFrame({"solver": config["solver"]})
-        preconditioners = pd.DataFrame({"preconditioner": config["preconditioner"]})
-        permutations = solvers.join(preconditioners, how="cross")
-        # it makes no sense to precondition LU
-        permutations = permutations.query("(solver != 'LinearLUSolver')"
-                                          "| (preconditioner == 'none')")
-        df = df.join(permutations, how="cross")
-
     df = df[~((df["solver"].isin(["LinearLUSolver", "LinearJORSolver"])
               & (df["preconditioner"] != "none")))]
     df = df[~(df["preconditioner"] == "MultilevelSolverSmootherPreconditioner")]
@@ -158,29 +222,12 @@ def get_simulations(config):
 
     return df
 
-def get_configurations(config):
-    default = {
-        "solver": None,
-        "preconditioner": None
-    }
-    default.update(config)
-    del default["simulation"]
-
-    configurations = {}
-    for name, simulation in config["simulation"].items():
-        updated = default.copy()
-        if simulation is not None:
-            updated.update(simulation)
-        configurations[name] = updated
-
-    return configurations
-
 def get_mpi(wildcards):
-    simulation = SIMULATIONS["all"].loc[wildcards.id]
-    if simulation.tasks == 1:
+    simulation = SIMULATIONS.loc[wildcards.id]
+    if simulation.task == 1:
         mpi = ""
     else:
-        mpi = f"mpiexec -n {simulation['tasks']}"
+        mpi = f"mpiexec -n {simulation['task']}"
 
     return mpi
 
@@ -192,15 +239,17 @@ def load_metrics(r):
         return pd.Series([])
 
 def get_scan_simulations(wildcards):
+    subset = SIMULATIONS[SIMULATIONS["simulation"] == wildcards.simulation]
     return expand("results/fipy~{rev}/suite~{suite}/{id}/metrics.csv",
                   zip,
-                  rev=SIMULATIONS[wildcards.scan]["fipy_rev"],
-                  suite=SIMULATIONS[wildcards.scan]["suite"],
-                  id=SIMULATIONS[wildcards.scan].index)
+                  rev=subset["fipy_rev"],
+                  suite=subset["suite"],
+                  id=subset.index)
 
 def get_scan_benchmarks(wildcards):
+    subset = SIMULATIONS[SIMULATIONS["simulation"] == wildcards.simulation]
     return expand("benchmarks/fipy~{rev}/suite~{suite}/{id}/benchmark-dendrite1D.tsv",
                   zip,
-                  rev=SIMULATIONS[wildcards.scan]["fipy_rev"],
-                  suite=SIMULATIONS[wildcards.scan]["suite"],
-                  id=SIMULATIONS[wildcards.scan].index)
+                  rev=subset["fipy_rev"],
+                  suite=subset["suite"],
+                  id=subset.index)

@@ -1,6 +1,6 @@
 fipy_url: "https://github.com/usnistgov/fipy.git"
 
-fipy_revs:
+fipy_rev:
 # - "d8a569e79"
 # - "371d28468" # patched "62cbf2211"
 # - "ef3db887e" # patched "b873c7e3f"
@@ -9,12 +9,16 @@ fipy_revs:
 - "a5f233aa7" # patched "2c7ac213b"
 
 replicate: 1
-suites:
+suite:
   "petsc":
-    tasks:
-      min: 1
-      max: 1
-      steps: 1
+    task:
+      start: 1
+      stop: 64
+      num: 7
+      base: 2
+      dtype: int
+  "pysparse":
+    task: 1
 Lx: 960
 dx: 0.5
 dt: 0.15
@@ -26,15 +30,15 @@ benchmark: dendrite-1D
 simulation:
   scan_dx:
     dx:
-      min: 0.1
-      max: 2.
-      steps: 5
+      start: 0.1
+      stop: 2.
+      num: 5
       base: 10
   scan_dt:
     dt:
-      min: 0.1
-      max: 0.7
-      steps: 10
+      start: 0.1
+      stop: 0.7
+      num: 10
       base: 10
   scan_solver:
     t_max: 100
