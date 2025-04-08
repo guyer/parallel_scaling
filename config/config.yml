@@ -17,8 +17,6 @@ suite:
       num: 7
       base: 2
       dtype: int
-  "pysparse":
-    task: 1
 Lx: 960
 dx: 0.5
 dt: 0.15
@@ -44,3 +42,4 @@ simulation:
     t_max: 100
     solver: all
     preconditioner: all
+    task: 1
