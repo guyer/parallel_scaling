@@ -2,11 +2,11 @@ from pathlib import Path
 import pandas as pd
 from matplotlib import pyplot as plt
 import matplotlib
-import json
 
 configfile: "config/config.yml"
 
 include: "rules/common.smk"
+include: "rules/configuration.smk"
 include: "rules/aggregate.smk"
 include: "rules/clone.smk"
 include: "rules/permutations.smk"
@@ -156,28 +156,18 @@ rule tabulate_dendrites:
     input:
         simulations=get_scan_simulations
     log:
-        "logs/pootie-shoe_{simulation}.log"
+        "logs/results/tables/dendrites_{simulation}.log"
     run:
         benchmarks = []
         for path in input:
             path = Path(path)
-#            print(f"{path=}")
-#            print(f"{path.parent / 'params.json'=}")
             params = pd.read_json(path.parent / "params.json", typ="series")
             params = pd.DataFrame([params])
-#            print(f"{params=}")
             benchmark = "benchmarks" / Path("/".join(path.parts[1:-1])) / "benchmark-dendrite1D.tsv"
             benchmark = pd.read_csv(benchmark, delimiter="\t")
-#            print(f"{benchmark=}")
             benchmark = params.join(benchmark)
             benchmarks.append(benchmark)
 
-#        print(f"{benchmarks=}")
         benchmarks = pd.concat(benchmarks, ignore_index=True)
 
         benchmarks.to_json(output[0])
-
-#        paths = [Path(path).parts[1:-1] for path in input]
-#        paths = [Path("/".join(path)) for path in paths]
-#        paths = ["benchmarks" / path / "benchmark-dendrite1D.tsv" for path in paths]
-#        concat_tsv(paths, output[0], log[0])
