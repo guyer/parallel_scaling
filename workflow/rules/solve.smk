@@ -2,63 +2,32 @@ import json
 
 rule solve:
     output:
-        "results/fipy~{rev}/suite~{suite}/{id}/metrics.json"
+        "results/{simulation}/fipy~{rev}/suite~{suite}/{id}/metrics.csv"
     input:
-        env="results/fipy~{rev}/suite~{suite}/environment.yml",
-        benchmark=get_benchmark,
-    params:
-        config=get_config_by_id,
+        simulation="workflow/scripts/{simulation}.py",
+        params="results/{simulation}/fipy~{rev}/suite~{suite}/{id}/params.json"
     resources:
       mpi=get_mpi,
       tasks=lambda wildcards: int(SIMULATIONS.loc[wildcards.id, "task"])
     conda:
-        "../../results/fipy~{rev}/suite~{suite}/environment.yml"
+        "../workflow/envs/fipy~{rev}/suite~{suite}/environment.yml"
     log:
-        "logs/fipy~{rev}/suite~{suite}/{id}/notebooks/benchmark.log"
+        "logs/{simulation}/fipy~{rev}/suite~{suite}/{id}/notebooks/simulation.log"
     benchmark:
-        "benchmarks/fipy~{rev}/suite~{suite}/{id}/benchmark.tsv"
+        "benchmarks/{simulation}/fipy~{rev}/suite~{suite}/{id}/benchmark.tsv"
     shell:
         r"""
         FIPY_SOLVERS={wildcards.suite} \
             {resources.mpi} \
-            python {input.benchmark:q} \
-            --solver=LinearGMRESSolver \
-            --preconditioner=JacobiPreconditioner \
-            --totaltime={params.config[totaltime]} \
-            --nx={params.config[nx]} \
+            python {input.simulation:q} {input.params:q} \
             > {output} \
             2> {log:q} \
             || touch {output:q}
         """
 
-rule dendrite_1D:
+rule params:
     output:
-        "results/fipy~{rev}/suite~{suite}/{id}/metrics.csv"
-    input:
-        benchmark="workflow/scripts/dendrite-1D.py",
-        params="results/fipy~{rev}/suite~{suite}/{id}/params.json"
-    resources:
-      mpi=get_mpi,
-      tasks=lambda wildcards: int(SIMULATIONS.loc[wildcards.id, "task"])
-    conda:
-        "../../results/fipy~{rev}/suite~{suite}/environment.yml"
-    log:
-        "logs/fipy~{rev}/suite~{suite}/{id}/notebooks/benchmark.log"
-    benchmark:
-        "benchmarks/fipy~{rev}/suite~{suite}/{id}/benchmark-dendrite1D.tsv"
-    shell:
-        r"""
-        FIPY_SOLVERS={wildcards.suite} \
-            {resources.mpi} \
-            python {input.benchmark:q} {input.params:q} {output:q} \
-            > {output} \
-            2> {log:q} \
-            || touch {output:q}
-        """
-
-rule dendrite_1D_params:
-    output:
-        "results/fipy~{rev}/suite~{suite}/{id}/params.json"
+        "results/{simulation}/fipy~{rev}/suite~{suite}/{id}/params.json"
     params:
         config=get_config_by_id,
     run:
