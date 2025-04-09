@@ -94,7 +94,7 @@ rule plot_speedup:
 
 rule bootstrap:
     input:
-        expand("results/fipy~{rev}/suite~{suite}/environment.yml",
+        expand("workflow/envs/fipy~{rev}/suite~{suite}/environment.yml",
                rev=config["fipy_rev"],
                suite=config["suite"])
 

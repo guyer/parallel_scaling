@@ -10,7 +10,7 @@ rule solve:
       mpi=get_mpi,
       tasks=lambda wildcards: int(SIMULATIONS.loc[wildcards.id, "task"])
     conda:
-        "../workflow/envs/fipy~{rev}/suite~{suite}/environment.yml"
+        "../envs/fipy~{rev}/suite~{suite}/environment.yml"
     log:
         "logs/{simulation}/fipy~{rev}/suite~{suite}/{id}/notebooks/simulation.log"
     benchmark:

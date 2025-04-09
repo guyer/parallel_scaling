@@ -1,7 +1,7 @@
 rule render_conda_template:
     localrule: True
     output:
-        "results/fipy~{rev}/suite~{suite}/environment.yml"
+        "workflow/envs/fipy~{rev}/suite~{suite}/environment.yml"
     input:
         template="workflow/envs/benchmark_{suite}.yml",
     log:
