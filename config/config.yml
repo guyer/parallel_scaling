@@ -8,7 +8,7 @@ fipy_rev:
 # - "742c901e9" # patched "36bff3800"
 - "a5f233aa7" # patched "2c7ac213b"
 
-replicate: 1
+replicate: 5
 suite:
   "petsc":
     task:
