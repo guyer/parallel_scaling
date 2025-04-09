@@ -13,6 +13,7 @@ include: "rules/permutations.smk"
 include: "rules/solve.smk"
 include: "rules/plot.smk"
 include: "rules/notebook.smk"
+include: "rules/reduce.smk"
 
 report: "report/workflow.rst"
 
