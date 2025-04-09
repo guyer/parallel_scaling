@@ -144,28 +144,28 @@ rule plot_permutations_timed:
         df = pd.read_json(input[0])
         plot_all(df, output.total, ymin=1e0, ymax=1e4)
 
-rule plot_dendrites:
+rule plot_parameter_scan:
     output:
-        "results/plots/dendrites_{scan}.png"
+        "results/{simulation}/plots/{scan}.png"
     input:
         get_scan_simulations
     run:
         plot_metrics(input, output[0])
 
-rule tabulate_dendrites:
+rule tabulate_parameter_scan:
     output:
-        "results/tables/dendrites_{simulation}.json"
+        "results/{simulation}/tables/{scan}.json"
     input:
         simulations=get_scan_simulations
     log:
-        "logs/results/tables/dendrites_{simulation}.log"
+        "logs/{simulation}/tables/{scan}.log"
     run:
         benchmarks = []
         for path in input:
             path = Path(path)
             params = pd.read_json(path.parent / "params.json", typ="series")
             params = pd.DataFrame([params])
-            benchmark = "benchmarks" / Path("/".join(path.parts[1:-1])) / "benchmark-dendrite1D.tsv"
+            benchmark = "benchmarks" / Path("/".join(path.parts[1:-1])) / "benchmark.tsv"
             benchmark = pd.read_csv(benchmark, delimiter="\t")
             benchmark = params.join(benchmark)
             benchmarks.append(benchmark)

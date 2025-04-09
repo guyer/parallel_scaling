@@ -38,16 +38,9 @@ def load_metrics(r):
 
 def get_scan_simulations(wildcards):
     subset = SIMULATIONS[SIMULATIONS["simulation"] == wildcards.simulation]
-    return expand("results/fipy~{rev}/suite~{suite}/{id}/metrics.csv",
+    return expand("results/{simulation}/fipy~{rev}/suite~{suite}/{id}/metrics.csv",
                   zip,
-                  rev=subset["fipy_rev"],
-                  suite=subset["suite"],
-                  id=subset.index)
-
-def get_scan_benchmarks(wildcards):
-    subset = SIMULATIONS[SIMULATIONS["simulation"] == wildcards.simulation]
-    return expand("benchmarks/fipy~{rev}/suite~{suite}/{id}/benchmark-dendrite1D.tsv",
-                  zip,
+                  simulation=subset["simulation"],
                   rev=subset["fipy_rev"],
                   suite=subset["suite"],
                   id=subset.index)
