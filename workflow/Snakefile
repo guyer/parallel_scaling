@@ -12,6 +12,7 @@ include: "rules/clone.smk"
 include: "rules/permutations.smk"
 include: "rules/solve.smk"
 include: "rules/plot.smk"
+include: "rules/notebook.smk"
 
 report: "report/workflow.rst"
 
