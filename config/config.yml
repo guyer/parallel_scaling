@@ -23,9 +23,9 @@ dt: 0.15
 t_max: 1500
 r0: 8
 view: False
-benchmark: dendrite-1D
+simulation: dendrite-1D
 
-simulation:
+study:
   scan_dx:
     dx:
       start: 0.1
@@ -43,3 +43,11 @@ simulation:
     solver: all
     preconditioner: all
     task: 1
+  benchmark3a:
+    simulation: dendrite-Grid2D
+    t_max: 100
+    Lx: 96
+    solver: LinearBicgSolver
+    preconditioner: none
+    task: 1
+    replicate: 1

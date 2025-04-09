@@ -19,8 +19,6 @@ report: "report/workflow.rst"
 
 SIMULATIONS = get_simulations(config)
 
-# print(SIMULATIONS)
-
 globbed = glob_wildcards("results/fipy~{rev}/suite~{suite}/{id}/metrics.json")
 
 rule all:
@@ -28,6 +26,12 @@ rule all:
     input:
         "results/plots/scaling.png",
         "results/plots/speedup.png"
+
+rule all_simulations:
+    output:
+        "results/all.json"
+    run:
+        SIMULATIONS.to_json(output[0])
 
 rule plot_scaling:
     localrule: True
@@ -144,21 +148,21 @@ rule plot_permutations_timed:
         df = pd.read_json(input[0])
         plot_all(df, output.total, ymin=1e0, ymax=1e4)
 
-rule plot_parameter_scan:
+rule plot_study:
     output:
-        "results/{simulation}/plots/{scan}.png"
+        "results/{simulation}/plots/{study}.png"
     input:
-        get_scan_simulations
+        get_study_simulations
     run:
         plot_metrics(input, output[0])
 
-rule tabulate_parameter_scan:
+rule tabulate_study:
     output:
-        "results/{simulation}/tables/{scan}.json"
+        "results/{simulation}/tables/{study}.json"
     input:
-        simulations=get_scan_simulations
+        simulations=get_study_simulations
     log:
-        "logs/{simulation}/tables/{scan}.log"
+        "logs/{simulation}/tables/{study}.log"
     run:
         benchmarks = []
         for path in input:

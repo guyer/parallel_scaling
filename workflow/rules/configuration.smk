@@ -14,10 +14,10 @@ DEFAULT = {
     't_max': 1500,
     'r0': 8,
     'view': False,
-    'benchmark': 'dendrite-1D',
+    'simulation': 'dendrite-1D',
     'task': 1,
     'suite': 'petsc',
-    'simulation': 'scan_dx',
+    'study': 'scan_dx',
     'solver': None,
     'preconditioner': None
 }
@@ -129,7 +129,7 @@ def build_configurations(config):
     updated = DEFAULT.copy()
     updated.update(config)
     configs = expand_configurations(updated,
-                                    ["fipy_rev", "suite", "simulation"])
+                                    ["fipy_rev", "suite", "study"])
 
     dfs = []
     for config in configs:
