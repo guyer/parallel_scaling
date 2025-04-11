@@ -47,7 +47,7 @@ study:
     simulation: dendrite-Grid2D
     t_max: 100
     Lx: 96
-    solver: LinearBicgSolver
-    preconditioner: none
+    solver: LinearGMRESSolver
+    preconditioner: ILUPreconditioner
     task: 1
     replicate: 1
