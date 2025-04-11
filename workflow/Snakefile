@@ -154,7 +154,10 @@ rule plot_study:
     input:
         get_study_simulations
     run:
-        plot_metrics(input, output[0])
+        if wildcards.study == "scan_solver":
+            plot_scan_solver(input, output[0])
+        else:
+            plot_metrics(input, output[0])
 
 rule tabulate_study:
     output:
