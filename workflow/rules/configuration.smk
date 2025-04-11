@@ -20,7 +20,8 @@ DEFAULT = {
     'suite': 'petsc',
     'study': 'scan_dx',
     'solver': None,
-    'preconditioner': None
+    'preconditioner': None,
+    'restart': None
 }
 
 def get_dtype(value):

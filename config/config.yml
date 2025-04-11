@@ -45,10 +45,11 @@ study:
     task: 1
   benchmark3a:
     simulation: dendrite-Grid2D
-    t_max: 100
-    checkpoints: [50, 100]
+    t_max: 20
+    checkpoints: [10, 20]
     Lx: 96
     solver: LinearGMRESSolver
     preconditioner: ILUPreconditioner
     task: 1
     replicate: 1
+    restart: results/dendrite-Grid2D/fipy~a5f233aa7/suite~petsc/cdc5c07595710516faee837a72f8f1c98fcdd682/t=10.0.npz
