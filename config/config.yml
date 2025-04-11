@@ -46,6 +46,7 @@ study:
   benchmark3a:
     simulation: dendrite-Grid2D
     t_max: 100
+    checkpoints: [50, 100]
     Lx: 96
     solver: LinearGMRESSolver
     preconditioner: ILUPreconditioner

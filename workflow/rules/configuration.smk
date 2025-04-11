@@ -12,6 +12,7 @@ DEFAULT = {
     'dx': 1.,
     'dt': 0.15,
     't_max': 1500,
+    'checkpoints': [0],
     'r0': 8,
     'view': False,
     'simulation': 'dendrite-1D',
@@ -56,7 +57,7 @@ def get_logspace(value):
 
     return space
 
-def get_space(key, value):
+def get_space(key, value, no_expand=False):
     """Return numbers spaced
     If `value` is a list or tuple, return it.
     If `value` is a single value, return a list containing `value`.
@@ -67,7 +68,9 @@ def get_space(key, value):
         - `base`, optional; if present, returns logspace
         - `dtype`, default `int`
     """
-    if isinstance(value, dict):
+    if no_expand:
+        space = [value]
+    elif isinstance(value, dict):
         if "base" in value:
             space = get_logspace(value)
         else:
@@ -80,7 +83,7 @@ def get_space(key, value):
     return pd.DataFrame({key: space})
 
 def replace_from_json(config, key, json_file):
-    if (config[key] == "all") & json_file.exists():
+    if config[key] == "all":
         config[key] = pd.read_json(json_file)[key].to_list()
 
 def build_configurations_base(config):
@@ -95,7 +98,10 @@ def build_configurations_base(config):
 
     parameters = []
     for key, value in config.items():
-        parameters.append(get_space(key, value))
+        # don't expand checkpoints into separate simulations
+        space = get_space(key, value,
+                          no_expand=key in ["checkpoints"])
+        parameters.append(space)
 
     return functools.reduce(lambda a, b: a.join(b, how="cross"), parameters)
 
