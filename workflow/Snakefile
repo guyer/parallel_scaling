@@ -172,6 +172,16 @@ rule tabulate_study:
             benchmark = "benchmarks" / Path("/".join(path.parts[1:-1])) / "benchmark.tsv"
             benchmark = pd.read_csv(benchmark, delimiter="\t")
             benchmark = params.join(benchmark)
+            benchmark["id"] = path.parent.name
+
+            df = pd.read_csv(path)
+            if (df.iloc[0]["free_energy"] > df["free_energy"].mean() > 0):
+                benchmark["status"] = "?"
+            else:
+                benchmark["status"] = "BAD"
+
+            benchmark.set_index("id")
+
             benchmarks.append(benchmark)
 
         benchmarks = pd.concat(benchmarks, ignore_index=True)
