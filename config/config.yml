@@ -50,5 +50,5 @@ study:
     Lx: 200
     solver: LinearGMRESSolver
     preconditioner: ILUPreconditioner
-    task: 64
+    task: 2
     replicate: 1
