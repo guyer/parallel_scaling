@@ -52,5 +52,5 @@ study:
     dt: 0.1
     solver: LinearGMRESSolver
     preconditioner: none
-    task: 2
+    task: 64
     replicate: 1
