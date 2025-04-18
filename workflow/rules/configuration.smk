@@ -84,7 +84,7 @@ def get_space(key, value, no_expand=False):
     return pd.DataFrame({key: space})
 
 def replace_from_json(config, key, json_file):
-    if config[key] == "all":
+    if config[key] == "all" and json_file.exists():
         config[key] = pd.read_json(json_file)[key].to_list()
 
 def build_configurations_base(config):
