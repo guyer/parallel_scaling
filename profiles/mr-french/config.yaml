@@ -6,5 +6,5 @@ conda-prefix: /toolbox/guyer/snakemaking/conda
 latency-wait: 90
 default-resources:
   - mem=1mb
-  - slurm_partition="faster"
-  - runtime=120
+  - slurm_partition="fast"
+  - runtime=720
