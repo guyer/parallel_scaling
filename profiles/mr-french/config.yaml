@@ -1,5 +1,5 @@
 printshellcmds: True
-jobs: 64
+jobs: 32
 executor: slurm
 use-conda: True
 conda-prefix: /toolbox/guyer/snakemaking/conda
