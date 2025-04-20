@@ -190,3 +190,20 @@ rule tabulate_study:
         benchmarks = pd.concat(benchmarks, ignore_index=True)
 
         benchmarks.to_json(output[0])
+
+rule plot_phase_field:
+    output:
+        "results/{simulation}/fipy~{rev}/suite~{suite}/{id}/t={time}.png"
+    input:
+        script="workflow/scripts/npz2png.py",
+        data="results/{simulation}/fipy~{rev}/suite~{suite}/{id}/t={time}.npz",
+        params="results/{simulation}/fipy~{rev}/suite~{suite}/{id}/params.json"
+    log:
+        "logs/{simulation}/fipy~{rev}/suite~{suite}/{id}/notebooks/t={time}.log"
+    conda:
+        "../envs/fipy~{rev}/suite~{suite}/environment.yml"
+    shell:
+        r"""
+        python {input.script:q} {input.params:q} {input.data:q} {output[0]:q} \
+        > {log:q} 2>&1
+        """
