@@ -201,7 +201,7 @@ rule plot_phase_field:
     log:
         "logs/{simulation}/fipy~{rev}/suite~{suite}/{id}/notebooks/t={time}.log"
     conda:
-        "../envs/fipy~{rev}/suite~{suite}/environment.yml"
+        "envs/fipy~{rev}/suite~{suite}/environment.yml"
     shell:
         r"""
         python {input.script:q} {input.params:q} {input.data:q} {output[0]:q} \
