@@ -14,6 +14,7 @@ DEFAULT = {
     't_max': 1500,
     'checkpoints': [0],
     'r0': 8,
+    'theta0': 0,
     'view': False,
     'simulation': 'dendrite-1D',
     'task': 1,
