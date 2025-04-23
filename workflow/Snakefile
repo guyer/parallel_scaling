@@ -192,6 +192,7 @@ rule tabulate_study:
         benchmarks.to_json(output[0])
 
 rule plot_phase_field:
+    localrule: True
     output:
         "results/{simulation}/fipy~{rev}/suite~{suite}/{id}/t={time}.png"
     input:
