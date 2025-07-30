@@ -91,8 +91,8 @@ def get_simulations(config):
 
     return df
 
-def get_mpi(wildcards, *args, **kwargs):
-    print(f"{args=} {kwargs=}")
+def get_mpi(wildcards, input, attempt, rulename, threads):
+    print(f"{wildcards=} {input=} {attempt=} {rulename=} {threads=}")
     simulation = SIMULATIONS.loc[int(wildcards.id)]
     if simulation.tasks == 1:
         mpi = ""
