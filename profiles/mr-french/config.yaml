@@ -8,3 +8,6 @@ default-resources:
   - mem=1mb
   - slurm_partition="faster"
   - runtime=120
+set-resources:
+  solve:
+    tasks: 64

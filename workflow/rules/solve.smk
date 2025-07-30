@@ -7,8 +7,7 @@ rule solve:
     params:
         config=get_config_by_id,
     resources:
-      mpi=get_mpi,
-      tasks=lambda wildcards: int(SIMULATIONS.loc[int(wildcards.id), "tasks"])
+      mpi=get_mpi
     conda:
         "../../results/fipy~{rev}/suite~{suite}/environment.yml"
     log:
