@@ -49,11 +49,11 @@ rule solver_preconditioner_permutations:
         permutations = permutations.query("(solver != 'LinearLUSolver')"
                                           "| (preconditioner == 'none')")
 
-        with open(f"{wildcards['rev']}_config.txt", "w") as f:
+        with open(f"{wildcards['rev']}_{wildcards['suite']}_config.txt", "w") as f:
             print(repr(config), file=f)
         permutations["suite"] = wildcards["suite"]
         permutations["fipy_rev"] = wildcards["rev"]
-        tasks = get_logspace(config["suites"][wildcards["suite"]], "tasks")
+        tasks = get_logspace(config["suites"].get(wildcards["suite"], {}), "tasks")
         permutations["tasks"] = tasks
         permutations.to_csv(output[0], index=False)
 
