@@ -106,9 +106,9 @@ def load_metrics(r):
         return pd.read_json(fname, typ='series')
     except ValueError:
         return pd.Series({
-            "elapsed / s": np.NaN,
-            "etaerror2": np.NaN,
-            "etaerrorINF": np.NaN,
+            "elapsed / s": np.nan,
+            "etaerror2": np.nan,
+            "etaerrorINF": np.nan,
             "solver": "",
             "preconditioner": ""
         })
