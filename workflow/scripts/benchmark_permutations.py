@@ -15,9 +15,9 @@ logging.basicConfig(
 )
 
 try:
-    min_size = snakemake.config["size"].get("min", 10)
-    max_size = snakemake.config["size"].get("max", 1000000)
-    size_steps = snakemake.config["size"].get("steps", 6)
+    min_size = snakemake.config["nx"].get("min", 10)
+    max_size = snakemake.config["nx"].get("max", 1000000)
+    size_steps = snakemake.config["nx"].get("steps", 6)
 
     benchmarks = []
     for name, benchmark in snakemake.config["benchmarks"].items():
@@ -27,8 +27,8 @@ try:
         sizes = np.logspace(np.log10(min_size) / dimension,
                             np.log10(max_size) / dimension,
                             size_steps,
-                            dtype=int)**dimension
-        df = pd.DataFrame(data=sizes, columns=["numberOfElements"])
+                            dtype=int)
+        df = pd.DataFrame(data=sizes, columns=["nx"])
         df["benchmark"] = name
         df["hostname"] = platform.node()
         benchmarks.append(df)
