@@ -49,7 +49,8 @@ rule solver_preconditioner_permutations:
         permutations = permutations.query("(solver != 'LinearLUSolver')"
                                           "| (preconditioner == 'none')")
 
-        print(repr(config), file="config.txt")
+        with open(f"{wildcards['rev']}_config.txt", "w") as f:
+            print(repr(config), file=f)
         permutations["suite"] = wildcards["suite"]
         permutations["fipy_rev"] = wildcards["rev"]
         tasks = get_logspace(config["suites"][wildcards["suite"]], "tasks")
