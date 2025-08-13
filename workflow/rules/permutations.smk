@@ -1,3 +1,5 @@
+include: "common.smk"
+
 rule benchmark_permutations:
     output:
         "config/benchmark_permutations.csv"
@@ -49,6 +51,8 @@ rule solver_preconditioner_permutations:
 
         permutations["suite"] = wildcards["suite"]
         permutations["fipy_rev"] = wildcards["rev"]
+        tasks = get_logspace(suite, "tasks")
+        permutations["tasks"] = tasks
         permutations.to_csv(output[0], index=False)
 
 rule get_solvers_preconditioners:

@@ -27,4 +27,4 @@ totaltime: 0.5
 
 benchmarks:
   manufactured_solutions:
-    dimension: 2
+    dimension: 1
