@@ -20,7 +20,7 @@ try:
     size_steps = snakemake.config["nx"].get("steps", 6)
 
     benchmarks = []
-    for name, benchmark in snakemake.config["benchmarks"].items():
+    for name, benchmark in [snakemake.config["benchmark"]]:
         # calculate dimensions that produce steps in orders of magnitude
         # in number of cells for square 2D grids
         dimension = benchmark.get("dimension", 2)
