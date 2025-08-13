@@ -25,4 +25,6 @@ suites:
 
 totaltime: 0.5
 
-benchmark: manufactured_solutions
+benchmarks:
+  manufactured_solutions:
+    dimension: 2
