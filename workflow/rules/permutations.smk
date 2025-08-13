@@ -51,7 +51,7 @@ rule solver_preconditioner_permutations:
 
         permutations["suite"] = wildcards["suite"]
         permutations["fipy_rev"] = wildcards["rev"]
-        tasks = get_logspace(wildcards["suite"], "tasks")
+        tasks = get_logspace(config["suite"][wildcards["suite"]], "tasks")
         permutations["tasks"] = tasks
         permutations.to_csv(output[0], index=False)
 
