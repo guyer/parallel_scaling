@@ -49,16 +49,14 @@ rule solver_preconditioner_permutations:
         permutations = permutations.query("(solver != 'LinearLUSolver')"
                                           "| (preconditioner == 'none')")
 
-#         with open(f"{wildcards['rev']}_{wildcards['suite']}_config.txt", "w") as f:
-#             print(repr(config), file=f)
-#             print(repr(config["suites"].get(wildcards["suite"], {})), file=f)
         permutations["suite"] = wildcards["suite"]
         permutations["fipy_rev"] = wildcards["rev"]
         suite = config["suites"][wildcards["suite"]]
         if suite is None:
             suite = {}
         tasks = get_logspace(suite, "tasks")
-        permutations["tasks"] = tasks
+        tasks = pd.DataFrame({"tasks": tasks})
+        permutations = permutations.join(tasks, how="cross")
         permutations.to_csv(output[0], index=False)
 
 rule get_solvers_preconditioners:
