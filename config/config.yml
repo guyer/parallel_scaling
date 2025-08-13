@@ -1,3 +1,5 @@
+simulations: "config/all_permutations.csv"
+
 fipy_url: "https://github.com/usnistgov/fipy.git"
 
 fipy_revs:

@@ -19,8 +19,8 @@ rule solve:
         FIPY_SOLVERS={wildcards.suite} \
             {resources.mpi} \
             python {input.benchmark:q} \
-            --solver=LinearGMRESSolver \
-            --preconditioner=JacobiPreconditioner \
+            --solver={params.config[solver]} \
+            --preconditioner={params.config[preconditioner]} \
             --totaltime={params.config[totaltime]} \
             --nx={params.config[nx]} \
             > {output} \
