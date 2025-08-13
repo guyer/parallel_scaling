@@ -51,6 +51,7 @@ rule solver_preconditioner_permutations:
 
         with open(f"{wildcards['rev']}_{wildcards['suite']}_config.txt", "w") as f:
             print(repr(config), file=f)
+            print(repr(config["suites"].get(wildcards["suite"], {})), file=f)
         permutations["suite"] = wildcards["suite"]
         permutations["fipy_rev"] = wildcards["rev"]
         tasks = get_logspace(config["suites"].get(wildcards["suite"], {}), "tasks")
