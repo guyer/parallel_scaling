@@ -124,6 +124,7 @@ rule aggregate_all_results:
         "logs/aggregate_all_results.log"
     run:
         metrics = SIMULATIONS.apply(load_metrics, axis=1)
+        metrics = metrics.drop(["solver", "preconditioner"], axis=1)
         df = pd.concat([SIMULATIONS, metrics], axis=1)
         df.to_json(output[0], date_format="iso")
 
@@ -141,6 +142,7 @@ rule aggregate_glob_results:
     run:
         subset = SIMULATIONS[globbed.id]
         metrics = subset.apply(load_metrics, axis=1)
+        metrics = metrics.drop(["solver", "preconditioner"], axis=1)
         df = pd.concat([subset, metrics], axis=1)
         df.to_json(output[0], date_format="iso")
 
