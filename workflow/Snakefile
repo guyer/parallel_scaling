@@ -122,7 +122,7 @@ rule aggregate_glob_results:
     log:
         "logs/aggregate_glob_results.log"
     run:
-        subset = SIMULATIONS[globbed.id]
+        subset = SIMULATIONS.iloc[globbed.id]
         metrics = subset.apply(load_metrics, axis=1)
         df = pd.concat([subset, metrics], axis=1)
         df.to_json(output[0], date_format="iso")
